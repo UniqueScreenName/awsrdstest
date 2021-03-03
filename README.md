@@ -1,2 +1,0 @@
-# awsrdstest
-RDS test

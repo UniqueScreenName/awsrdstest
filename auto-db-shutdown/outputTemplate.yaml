@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Automatic Database shudown and startup lambda function
+Parameters:
+  InstanceID:
+    Type: String
+    Default: testdb
+  InstanceARN:
+    Type: String
+    Default: arn:aws:rds:ca-central-1:254632925375:db:testdb
+Globals:
+  Function:
+    MemorySize: 128
+    Timeout: 3
+    Handler: app.lambdaHandler
+    Runtime: nodejs10.x
+    Environment:
+      Variables:
+        INSTANCE_IDENTIFIER:
+          Ref: InstanceID
+Resources:
+  DBShutDownFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://ahc-auto-aws-db-shutdown-deployment-artifacts/a0c6e1451e42cc1ff22714bb83c7f4bd
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - rds:StopDBInstance
+          Resource:
+            Ref: InstanceARN
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: cron(55 20 ? * MON-FRI *)
+  DBStartUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://ahc-auto-aws-db-shutdown-deployment-artifacts/e29165475c85cc55e1d17037715cdeea
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - rds:StartDBInstance
+          Resource:
+            Ref: InstanceARN
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: cron(10 21 ? * MON-FRI *)
