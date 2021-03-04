@@ -2,7 +2,7 @@ version: 0.2
 phases:
     install:
         runtime-versions:
-            nodejs10: 10
+            nodejs: 10
         commands:
             - aws cloudformation package --template-file template.yaml --s3-bucket ahc-auto-aws-db-shutdown-deployment-artifacts --output-template outputTemplate.yaml
 artifacts:
