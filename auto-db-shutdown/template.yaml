@@ -5,9 +5,6 @@ Parameters:
     InstanceID:
         Type: String
         Default: testdb
-    InstanceARN:
-        Type: String
-        Default: arn:aws:rds:ca-central-1:254632925375:db:testdb
 Globals:
     Function:
         MemorySize: 128
@@ -18,7 +15,17 @@ Globals:
             Variables:
                 INSTANCE_IDENTIFIER: !Ref InstanceID
 Resources:
+    TestDB:
+        Type: AWS::RDS::DBInstance
+        Properties:
+            DBInstanceIdentifier: !Ref InstanceID
+            AllocatedStorage: '5'
+            DBInstanceClass: db.t2.micro
+            Engine: MySQL
+            MasterUsername: admin
+            MasterUserPassword: adminPwd
     DBShutDownFunction:
+        DependsOn: TestDB
         Type: AWS::Serverless::Function
         Properties:
             CodeUri: shut-down/
@@ -28,13 +35,14 @@ Resources:
                   - Effect: Allow
                     Action:
                       - rds:StopDBInstance
-                    Resource: !Ref InstanceARN
+                    Resource: !Sub arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${InstanceID}
             Events:
               Schedule1:
                 Type: Schedule
                 Properties: 
-                  Schedule: cron(55 20 ? * MON-FRI *)
+                  Schedule: cron(45 12 ? * MON-FRI *)
     DBStartUpFunction:
+        DependsOn: TestDB
         Type: AWS::Serverless::Function
         Properties:
             CodeUri: start-up/
@@ -44,11 +52,11 @@ Resources:
                   - Effect: Allow
                     Action:
                       - rds:StartDBInstance
-                    Resource: !Ref InstanceARN
+                    Resource: !Sub arn:aws:rds:${AWS::Region}:${AWS::AccountId}:db:${InstanceID}
             Events:
               Schedule1:
                 Type: Schedule
                 Properties: 
-                  Schedule: cron(10 21 ? * MON-FRI *)
+                  Schedule: cron(00 13 ? * MON-FRI *)
     
 
