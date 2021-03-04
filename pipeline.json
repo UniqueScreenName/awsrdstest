@@ -1,0 +1,132 @@
+{
+    "pipeline": {
+        "name": "auto-aws-db-shutdown-pipeline",
+        "roleArn": "arn:aws:iam::254632925375:role/service-role/AWSCodePipelineServiceRole-ca-central-1-auto-aws-db-shutdown-pi",
+        "artifactStore": {
+            "type": "S3",
+            "location": "codepipeline-ca-central-1-910589746651"
+        },
+        "stages": [
+            {
+                "name": "Source",
+                "actions": [
+                    {
+                        "name": "Source",
+                        "actionTypeId": {
+                            "category": "Source",
+                            "owner": "AWS",
+                            "provider": "CodeStarSourceConnection",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "BranchName": "main",
+                            "ConnectionArn": "arn:aws:codestar-connections:ca-central-1:254632925375:connection/882d6d9b-9030-45fd-b732-6455f9b7186b",
+                            "DetectChanges": "true",
+                            "FullRepositoryId": "UniqueScreenName/awsrdstest",
+                            "OutputArtifactFormat": "CODE_ZIP"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "SourceArtifact"
+                            }
+                        ],
+                        "inputArtifacts": [],
+                        "region": "ca-central-1",
+                        "namespace": "SourceVariables"
+                    }
+                ]
+            },
+            {
+                "name": "Build",
+                "actions": [
+                    {
+                        "name": "Build",
+                        "actionTypeId": {
+                            "category": "Build",
+                            "owner": "AWS",
+                            "provider": "CodeBuild",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "ProjectName": "auto-aws-db-shutdown-build"
+                        },
+                        "outputArtifacts": [
+                            {
+                                "name": "BuildArtifact"
+                            }
+                        ],
+                        "inputArtifacts": [
+                            {
+                                "name": "SourceArtifact"
+                            }
+                        ],
+                        "region": "ca-central-1",
+                        "namespace": "BuildVariables"
+                    }
+                ]
+            },
+            {
+                "name": "Deploy",
+                "actions": [
+                    {
+                        "name": "Create-Update-Changeset",
+                        "actionTypeId": {
+                            "category": "Deploy",
+                            "owner": "AWS",
+                            "provider": "CloudFormation",
+                            "version": "1"
+                        },
+                        "runOrder": 1,
+                        "configuration": {
+                            "ActionMode": "CHANGE_SET_REPLACE",
+                            "Capabilities": "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+                            "ChangeSetName": "auto-db-shutdown-changeset",
+                            "OutputFileName": "auto-db-shutdown-changeset",
+                            "RoleArn": "arn:aws:iam::254632925375:role/cfn-auto-db-shutdown-pipeline-role",
+                            "StackName": "auto-db-shutdown-stack",
+                            "TemplatePath": "BuildArtifact::outputTemplate.yaml"
+                        },
+                        "outputArtifacts": [],
+                        "inputArtifacts": [
+                            {
+                                "name": "BuildArtifact"
+                            }
+                        ],
+                        "region": "ca-central-1",
+                        "namespace": "DeployVariables"
+                    },
+                    {
+                        "name": "Execute-Changeset",
+                        "actionTypeId": {
+                            "category": "Deploy",
+                            "owner": "AWS",
+                            "provider": "CloudFormation",
+                            "version": "1"
+                        },
+                        "runOrder": 2,
+                        "configuration": {
+                            "ActionMode": "CHANGE_SET_EXECUTE",
+                            "ChangeSetName": "auto-db-shutdown-changeset",
+                            "StackName": "auto-db-shutdown-stack"
+                        },
+                        "outputArtifacts": [],
+                        "inputArtifacts": [
+                            {
+                                "name": "BuildArtifact"
+                            }
+                        ],
+                        "region": "ca-central-1"
+                    }
+                ]
+            }
+        ],
+        "version": 6
+    },
+    "metadata": {
+        "pipelineArn": "arn:aws:codepipeline:ca-central-1:254632925375:auto-aws-db-shutdown-pipeline",
+        "created": "2021-03-04T16:25:43.457000+00:00",
+        "updated": "2021-03-04T18:13:58.909000+00:00"
+    }
+}

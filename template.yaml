@@ -40,7 +40,7 @@ Resources:
               Schedule1:
                 Type: Schedule
                 Properties: 
-                  Schedule: cron(15 18 ? * MON-FRI *)
+                  Schedule: cron(45 18 ? * MON-FRI *)
     DBStartUpFunction:
         DependsOn: TestDB
         Type: AWS::Serverless::Function
@@ -57,6 +57,6 @@ Resources:
               Schedule1:
                 Type: Schedule
                 Properties: 
-                  Schedule: cron(30 18 ? * MON-FRI *)
+                  Schedule: cron(00 19 ? * MON-FRI *)
     
 
